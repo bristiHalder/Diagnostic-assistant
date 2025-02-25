@@ -95,3 +95,12 @@ iface.launch()
 ## References
 - Dataset: [Chest X-ray Pneumonia on Kaggle](https://www.kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia?resource=download)
 - FastAI Documentation: [FastAI](https://docs.fast.ai/)
+
+
+## Results
+Prediction: NORMAL
+<img width="785" alt="image" src="https://github.com/user-attachments/assets/7594d0a7-b2bc-48e4-815c-d690aa41a21e" />
+
+Prediction: PNEUMONIA
+<img width="718" alt="image" src="https://github.com/user-attachments/assets/74b57186-f1b1-4d88-ae3d-527f9b4a10cb" />
+
