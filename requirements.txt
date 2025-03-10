@@ -6,3 +6,4 @@ fpdf
 plotly
 streamlit-extras
 opencv-python-headless
+joblib
