@@ -64,18 +64,6 @@ resnet_model = models.resnet50(pretrained=True)
 resnet_model.fc = torch.nn.Linear(resnet_model.fc.in_features, 3)
 resnet_model.eval()
 
-# Fine-tune model (example)
-# custom_dataset = ...  # Load dataset
-# criterion = torch.nn.CrossEntropyLoss()
-# optimizer = torch.optim.Adam(resnet_model.parameters(), lr=0.001)
-# for epoch in range(10):  # Example training loop
-#     for images, labels in custom_dataset:
-#         optimizer.zero_grad()
-#         outputs = resnet_model(images)
-#         loss = criterion(outputs, labels)
-#         loss.backward()
-#         optimizer.step()
-
 # Function to enhance X-ray image
 def enhance_xray(image):
     try:
@@ -177,26 +165,40 @@ if uploaded_file and user_name:
     try:
         image = PILImage.open(uploaded_file)
         enhanced_image = enhance_xray(image)
-        pred, probabilities, confidence_chart = apply_grad_cam(enhanced_image)
 
-        col1, col2 = st.columns([1, 1])
+        # Initialize session state
+        if 'prediction_made' not in st.session_state:
+            st.session_state.prediction_made = False
+            st.session_state.prediction = None
+            st.session_state.probabilities = None
+            st.session_state.confidence_chart = None
 
-        with col1:
-            st.image(enhanced_image, caption="Enhanced X-ray", use_column_width=True)
+        if st.button("🔍 Analyze"):
+            pred, probabilities, confidence_chart = apply_grad_cam(enhanced_image)
+            st.session_state.prediction_made = True
+            st.session_state.prediction = pred
+            st.session_state.probabilities = probabilities
+            st.session_state.confidence_chart = confidence_chart
 
-        with col2:
-            alpha = st.slider("Heatmap Intensity", 0.0, 1.0, 0.5)
-            heatmap_image = apply_grad_cam_heatmap(enhanced_image, alpha)
-            st.image(heatmap_image, caption="Interactive Heatmap", use_column_width=True)
-            st.plotly_chart(confidence_chart)
+        if st.session_state.prediction_made:
+            col1, col2 = st.columns([1, 1])
 
-        st.markdown(f'<div class="result-box">🔎 Prediction: {pred}</div>', unsafe_allow_html=True)
+            with col1:
+                st.image(enhanced_image, caption="Enhanced X-ray", use_column_width=True)
 
-        include_symptoms = st.checkbox("Include Symptoms in Report")
-        if st.button("📝 Generate Report"):
-            report_file = generate_report(user_name, pred, probabilities, symptoms, include_symptoms)
-            with open(report_file, "rb") as f:
-                st.download_button(label="📥 Download Report", data=f, file_name=report_file, mime="application/pdf")
+            with col2:
+                alpha = st.slider("Heatmap Intensity", 0.0, 1.0, 0.5)
+                heatmap_image = apply_grad_cam_heatmap(enhanced_image, alpha)
+                st.image(heatmap_image, caption="Interactive Heatmap", use_column_width=True)
+                st.plotly_chart(st.session_state.confidence_chart)
+
+            st.markdown(f'<div class="result-box">🔎 Prediction: {st.session_state.prediction}</div>', unsafe_allow_html=True)
+
+            include_symptoms = st.checkbox("Include Symptoms in Report")
+            if st.button("📝 Generate Report"):
+                report_file = generate_report(user_name, st.session_state.prediction, st.session_state.probabilities, symptoms, include_symptoms)
+                with open(report_file, "rb") as f:
+                    st.download_button(label="📥 Download Report", data=f, file_name=report_file, mime="application/pdf")
     except Exception as e:
         st.error("An error occurred: " + str(e))
 
