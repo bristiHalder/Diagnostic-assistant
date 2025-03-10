@@ -1,0 +1,8 @@
+streamlit
+torch
+torchvision
+pillow
+fpdf
+plotly
+streamlit-extras
+opencv-python-headless
